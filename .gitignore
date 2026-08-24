@@ -1,0 +1,17 @@
+build/
+DerivedData/
+DSBalanceMonitor.xcodeproj/
+Support/Info.plist
+xcuserdata/
+.DS_Store
+
+# IDE / local tooling
+.idea/
+.swiftpm/
+
+# Distribution artefacts
+dist/
+*.xcresult
+
+# Local agent/planning docs, not part of the public project
+docs/superpowers/

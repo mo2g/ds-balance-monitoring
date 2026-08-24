@@ -1,0 +1,40 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build universal app
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      - name: Build (arm64 + x86_64)
+        run: |
+          xcodegen generate
+          xcodebuild -project DSBalanceMonitor.xcodeproj -scheme DSBalanceMonitor \
+            -configuration Release -derivedDataPath build/DerivedData \
+            ARCHS="arm64 x86_64" ONLY_ACTIVE_ARCH=NO \
+            CODE_SIGN_IDENTITY="-" CODE_SIGNING_REQUIRED=NO \
+            clean build
+          APP="build/DerivedData/Build/Products/Release/DSBalanceMonitor.app"
+          codesign --force --deep --sign - "$APP"
+          mkdir -p dist
+          ditto -c -k --sequesterRsrc --keepParent "$APP" \
+            "dist/DSBalanceMonitor-${{ github.ref_name }}-macOS.zip"
+
+      - name: Upload draft release
+        uses: softprops/action-gh-release@v2
+        with:
+          draft: true
+          generate_release_notes: true
+          files: dist/*.zip
